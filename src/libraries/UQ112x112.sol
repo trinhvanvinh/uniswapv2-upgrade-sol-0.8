@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.13;
 
 library UQ112x112 {
     uint224 constant Q112 = 2 ** 112;

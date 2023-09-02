@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.13;
 
 import "./interfaces/IUniswapV2Factory.sol";
 import "./interfaces/IUniswapV2Pair.sol";
 import "./UniswapV2Library.sol";
+
+error SafeTransferFailed();
 
 contract UniswapV2Router {
     IUniswapV2Factory factory;
@@ -182,12 +184,14 @@ contract UniswapV2Router {
     ) private {
         (bool success, bytes memory data) = token.call(
             abi.encodeWithSignature(
-                "transferFrom(address, address, uint256)",
+                "transferFrom(address,address,uint256)",
                 from,
                 to,
                 value
             )
         );
-        require(success, "Safe transfer fail");
+        //require(success, "Safe transfer fail");
+        if (!success || (data.length != 0 && !abi.decode(data, (bool))))
+            revert SafeTransferFailed();
     }
 }

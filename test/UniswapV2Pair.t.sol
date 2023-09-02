@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.13;
 
 import "forge-std/Test.sol";
 import "../src/UniswapV2Factory.sol";
@@ -133,9 +133,9 @@ contract UniswapV2PairTest is Test {
     }
 
     function testMintZeroLiquidity() public {
-        token0.transfer(address(pair), 1000);
-        token1.transfer(address(pair), 1000);
-        vm.expectRevert(encodeError("InsufficientLiqudityMinted()"));
+        token0.transfer(address(pair), 1000); // error: 1000
+        token1.transfer(address(pair), 1000); // error: 1000
+        vm.expectRevert(encodeError("InsufficientLiquidityMinted()"));
         pair.mint(address(this));
     }
 

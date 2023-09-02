@@ -1,11 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.13;
 
-import "forge-sdt/Test.sol";
+import "forge-std/Test.sol";
 import "../src/UniswapV2Factory.sol";
 import "../src/UniswapV2Pair.sol";
 import "../src/UniswapV2Router.sol";
 import "./mocks/MockERC20.sol";
+import "forge-std/console.sol";
 
 contract UniswapV2RouterTest is Test {
     UniswapV2Factory factory;
@@ -31,7 +32,7 @@ contract UniswapV2RouterTest is Test {
     function encodeError(
         string memory error
     ) internal pure returns (bytes memory encoded) {
-        encoded = abi.encodedWithSignature(error);
+        encoded = abi.encodeWithSignature(error);
     }
 
     function testAddLiquidityCreatePair() public {
@@ -50,6 +51,7 @@ contract UniswapV2RouterTest is Test {
                 address(this)
             )
         );
+        console.log("router %s", success);
         assertTrue(success, "Failed to add Liquidity");
     }
 }

@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.21;
+pragma solidity ^0.8.13;
 
 import "../lib/solmate/src/tokens/ERC20.sol";
 import "./interfaces/IUniswapV2Callee.sol";
 import "./libraries/Math.sol";
 import "./libraries/UQ112x112.sol";
+import "forge-std/console.sol";
 
 interface IERC20 {
     function balanceOf(address) external returns (uint256);
 
     function transfer(address to, uint256 amount) external;
 }
+error InsufficientLiquidityMinted();
+error InsufficientLiquidityBurned();
+error TransferFailed();
 
 contract UniswapV2Pair is ERC20, Math {
     using UQ112x112 for uint224;
@@ -56,7 +60,7 @@ contract UniswapV2Pair is ERC20, Math {
 
     function initialize(address token0_, address token1_) public {
         require(
-            token0 != address(0) || token1 != address(0),
+            token0 == address(0) || token1 == address(0),
             "token is not address(0)"
         );
         token0 = token0_;
@@ -105,10 +109,12 @@ contract UniswapV2Pair is ERC20, Math {
         (bool success, bytes memory data) = token.call(
             abi.encodeWithSignature("transfer(address,uint256)", to, value)
         );
-        require(
-            !success || (data.length != 0 && !abi.decode(data, (bool))),
-            "Transfer failed"
-        );
+        // require(
+        //     !success || (data.length != 0 && !abi.decode(data, (bool))),
+        //     "Transfer failed"
+        // );
+        if (!success || (data.length != 0 && !abi.decode(data, (bool))))
+            revert TransferFailed();
     }
 
     function mint(address to) public returns (uint256 liquidity) {
@@ -126,8 +132,11 @@ contract UniswapV2Pair is ERC20, Math {
                 (amount0 * totalSupply) / reserve0_,
                 (amount1 * totalSupply) / reserve1_
             );
+            console.log("hh");
         }
-        require(liquidity > 0, "Insufficient liquidity minted");
+        console.log("kk %s %s %s", liquidity, amount0, amount1);
+        //require(liquidity > 0, "Insufficient liquidity minted");
+        if (liquidity <= 0) revert InsufficientLiquidityMinted();
         _mint(to, liquidity);
         _update(balance0, balance1, reserve0_, reserve1_);
         emit Mint(to, amount0, amount1);
@@ -143,7 +152,8 @@ contract UniswapV2Pair is ERC20, Math {
         amount0 = (liquidity * balance0) / totalSupply;
         amount1 = (liquidity * balance1) / totalSupply;
 
-        require(amount0 > 0 || amount1 > 0, "Insufficient Liquidity Burned");
+        //require(amount0 > 0 || amount1 > 0, "Insufficient Liquidity Burned");
+        if (amount0 == 0 || amount1 == 0) revert InsufficientLiquidityBurned();
         _burn(address(this), liquidity);
 
         _safeTransfer(token0, to, amount0);
